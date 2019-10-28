@@ -1,0 +1,81 @@
+version: '3.5'
+services:
+  nginx:
+    build:
+      context: ./
+      dockerfile: images/nginx.docker
+    volumes:
+      - ${WEB_ROOT}:/var/www
+      - ./nginx/ssl:/etc/nginx/ssl
+    ports:
+      - 8080:443
+    links:
+      - php-fpm
+    networks:
+      app_net:
+        ipv4_address: ${NETWORK_PREFIX}.2
+    restart: always
+  php-fpm:
+    build:
+      context: ./
+      dockerfile: images/php-fpm.docker
+    volumes:
+      - ${WEB_ROOT}:/var/www
+#      - ./storage/mysql:/var/lib/mysql
+    links:
+      - mysql
+      - redis
+    networks:
+      app_net:
+        ipv4_address: ${NETWORK_PREFIX}.3
+    restart: always
+  php-cli:
+    build:
+      context: ./
+      dockerfile: images/php-cli.docker
+    volumes:
+      - ${WEB_ROOT}:/var/www
+    links:
+      - redis
+      - mysql
+    networks:
+      app_net:
+        ipv4_address: ${NETWORK_PREFIX}.4
+    tty: true
+    restart: always
+  mysql:
+    image: mysql:5.7
+    volumes:
+      - ./storage/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    networks:
+      app_net:
+        ipv4_address: ${NETWORK_PREFIX}.5
+    restart: always
+  redis:
+    image: redis:3.0
+    networks:
+      app_net:
+        ipv4_address: ${NETWORK_PREFIX}.6
+    restart: always
+  node:
+    image: node:10.16.3-alpine
+    volumes:
+      - ${WEB_ROOT}:/var/www
+    working_dir: /var/www
+    networks:
+      app_net:
+        ipv4_address: ${NETWORK_PREFIX}.7
+    tty: true
+    restart: always
+networks:
+  app_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NETWORK_PREFIX}.0/24
