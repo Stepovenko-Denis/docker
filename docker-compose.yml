@@ -47,6 +47,7 @@ services:
     image: mysql:5.7
     volumes:
       - ./storage/mysql:/var/lib/mysql
+    command: "chmod -R 777 /var/lib/mysql"
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_USER=${MYSQL_USER}
