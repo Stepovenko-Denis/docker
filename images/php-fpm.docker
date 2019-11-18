@@ -11,4 +11,6 @@ RUN apt-get install -y \
 
 RUN apt-get install git -y
 
+COPY "php/memory-limit-php.ini" "/usr/local/etc/php/conf.d/memory-limit-php.ini"
+
 WORKDIR /var/www
